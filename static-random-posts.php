@@ -23,7 +23,7 @@ if (!class_exists('static_random_posts')) {
 					define( 'WP_CONTENT_URL', get_option('siteurl') . '/wp-content');
 				if ( !defined('WP_CONTENT_DIR'))
 					define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
-				$this->pluginDir = WP_CONTENT_URL . '/plugins/static-random-posts';
+				$this->pluginDir = WP_CONTENT_URL . '/plugins/static-random-posts-widget';
 				
 				//Initialization stuff
 				add_action('init', array(&$this, 'init'));
