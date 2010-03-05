@@ -24,35 +24,39 @@ $j.staticrandomposts = {
 	init: function() { initialize_links(); }
 };
 	//Initializes the refresh links
-	function initialize_links() {
-		$j(".static-refresh").bind("click", function() { 
-			//prepare object for AJAX call
-			var obj = $j(this);
-			obj.html(staticrandomposts.SRP_Loading);
-			var s = {};
-			s.element = obj.attr("id");
-			s.response = 'ajax-response';
-			var url = wpAjax.unserialize(obj.attr('href'));
-			s.type = "POST";
-			s.data = $j.extend(s.data, {action: url.action, number: url.number, name: url.name, _ajax_nonce: url._wpnonce});
-			s.global = false;
-			s.url = staticrandomposts.SRP_PluginURL + "/php/ajax-processor.php";
-			s.timeout = 30000;
-			s.success = function(r) {
-				obj.html(staticrandomposts.SRP_Refresh);
-				//Parse the XML response
-				var res = wpAjax.parseAjaxResponse(r, s.response,obj.attr("id"));
-				$j.each( res.responses, function() {
-					if (this.what == "posts") {
-						$j("#static-random-posts-" + url.number).hide();
-						$j("#static-random-posts-" + url.number).html(this.data);
-						$j("#static-random-posts-" + url.number).show("slow");
-					}
-				});
-			}
-			$j.ajax(s);
-      return false; 
-    });
-  }
+function initialize_links() {
+	$j(".static-refresh").bind("click", function() { 
+		//prepare object for AJAX call
+		var obj = $j(this);
+		obj.html(staticrandomposts.SRP_Loading);
+		var s = {};
+		s.element = obj.attr("class");
+		s.response = 'ajax-response';
+		var url = wpAjax.unserialize(obj.attr('href'));
+		s.type = "POST";
+		s.data = $j.extend(s.data, {action: url.action, number: url.number, name: url.name, _ajax_nonce: url._wpnonce});
+		s.global = false;
+		s.url = staticrandomposts.SRP_PluginURL + "/php/ajax-processor.php";
+		s.timeout = 30000;
+		s.success = function(r) {
+			obj.hide();
+			obj.html(staticrandomposts.SRP_Refresh);
+			//Parse the XML response
+			var res = wpAjax.parseAjaxResponse(r, s.response,obj.attr("class"));
+			$j.each( res.responses, function() {
+				if (this.what == "posts") {
+					var data = this.data;
+					$j("#static-random-posts-" + url.number).hide("slow", function() { 
+						$j("#static-random-posts-" + url.number).html(data);
+						$j("#static-random-posts-" + url.number).show("slow", function() { obj.show(); });
+						return;
+					});
+				}
+			});
+		}
+		$j.ajax(s);
+		return false; 
+	});
+}
 	$j.staticrandomposts.init();
 });

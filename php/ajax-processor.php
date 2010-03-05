@@ -1,6 +1,7 @@
 <?php 
 header('Content-Type: text/html; charset=UTF-8');
 define('DOING_AJAX', true);
+define('WP_INSTALLING', true);
 $root = dirname(dirname(dirname(dirname(dirname(__FILE__)))));
 if (file_exists($root.'/wp-load.php')) {
 		// WP 2.6
@@ -9,6 +10,13 @@ if (file_exists($root.'/wp-load.php')) {
 		// Before 2.6
 		require_once($root.'/wp-config.php');
 }
+$plugin = 'static-random-posts/static-random-posts.php';
+// Validate plugin filename
+if ( !validate_file($plugin) && '.php' == substr($plugin, -4) && file_exists(WP_PLUGIN_DIR . '/' . $plugin)) {
+	include_once(WP_PLUGIN_DIR . '/' . $plugin);
+}
+unset($plugin);
+
 $staticrandomposts = new static_random_posts();
 
 if (isset($_POST['number'])) {
@@ -35,15 +43,14 @@ if (isset($_POST['number'])) {
 	if(function_exists("wp_cache_clean_cache")) {
 		@wp_cache_clean_cache('wp-cache-');
 	}
-	
 	//Build and send the response
 	$response = new WP_Ajax_Response();
 	$response->add( array(
 					'what' => 'posts',
 					'id' => $number,
 					'data' => $staticrandomposts->print_posts($post_ids, false)));
-	
 	$response->send();
+	die('');
 }
 die('');
 ?>

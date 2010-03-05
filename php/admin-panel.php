@@ -4,7 +4,7 @@ Last modified on October 24, 2009
 */
 if (empty($this->adminOptionsName)) { die(''); }
 
-$options = $this->get_admin_options(); //global settings
+$options = $this->adminOptions; //global settings
 
 //Check to see if a user can access the panel
 if ( function_exists('current_user_can') && !current_user_can('manage_options') )
@@ -54,51 +54,44 @@ if (isset($_POST['update'])) {
 
 <div class="wrap">
 	 <h2>Static Random Posts Options</h2>
-  <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
-  <input type="hidden" name="cmd" value="_s-xclick">
-  <input type="hidden" name="hosted_button_id" value="9187843">
-  <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-  <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
-  </form>
   <form method="post" action="<?php echo $_SERVER["REQUEST_URI"]; ?>">
 		<?php wp_nonce_field('static-random-posts_admin-options') ?>
    
     
-    <table class="form-table">
-      <tbody>
-        <tr valign="top">
-          <th scope="row"><?php _e('Set refresh time (minutes):', $this->localizationName) ?></th>
-          <td><input type="text" name="time" value="<?php echo $options['minutes'] ?>" id="comment_time"/><p><?php _e('Your random posts will be refreshed every', $this->localizationName); echo " " . $options['minutes'] . " ";_e('minutes.', $this->localizationName);?></p></td>
-        </tr>
-        <tr valign="top">
-        	<th scope="row"><?php _e('Exclude Categories:', $this->localizationName) ?></th>
-          <td>
-          	<?php
-           	$args = array(
-							'type'                     => 'post',
-							'child_of'                 => 0,
-							'orderby'                  => 'name',
-							'order'                    => 'ASC',
-							'hide_empty'               => false,
-							'include_last_update_time' => false,
-							'hierarchical'             => 1);
-							$categories = get_categories( $args ); 
-							foreach ($categories as $cat) {
-								$checked = '';
-								if (is_array($options['categories'])) {
-									if (in_array("-" . $cat->term_id, $options['categories'], false)) {
-										$checked = "checked='checked'";
-									}
-								}
-								echo "<input type='checkbox' id='$cat->term_id' value='$cat->term_id' name='categories[]' $checked /> ";
-								echo "<label for='$cat->term_id'>$cat->name</label><br />";
-							}
-						?>
-          
-          </td>
-        </tr>
-     </tbody>
-    </table>
+<table class="form-table">
+  <tbody>
+    <tr valign="top">
+      <th scope="row"><?php _e('Set refresh time (minutes):', $this->localizationName) ?></th>
+      <td><input type="text" name="time" value="<?php echo $options['minutes'] ?>" id="comment_time"/><p><?php _e('Your random posts will be refreshed every', $this->localizationName); echo " " . $options['minutes'] . " ";_e('minutes.', $this->localizationName);?></p></td>
+    </tr>
+    <tr valign="top">
+        <th scope="row"><?php _e('Exclude Categories:', $this->localizationName) ?></th>
+      <td>
+        <?php
+        $args = array(
+                        'type'                     => 'post',
+                        'child_of'                 => 0,
+                        'orderby'                  => 'name',
+                        'order'                    => 'ASC',
+                        'hide_empty'               => false,
+                        'include_last_update_time' => false,
+                        'hierarchical'             => 1);
+                        $categories = get_categories( $args ); 
+                        foreach ($categories as $cat) {
+                            $checked = '';
+                            if (is_array($options['categories'])) {
+                                if (in_array("-" . $cat->term_id, $options['categories'], false)) {
+                                    $checked = "checked='checked'";
+                                }
+                            }
+                            echo "<input type='checkbox' id='$cat->term_id' value='$cat->term_id' name='categories[]' $checked /> ";
+                            echo "<label for='$cat->term_id'>$cat->name</label><br />";
+                        }
+                    ?>
+      </td>
+    </tr>
+ </tbody>
+</table>
     <div class="submit">
       <input type="submit" name="update" value="<?php _e('Update Settings', $this->localizationName) ?>" />
     </div>

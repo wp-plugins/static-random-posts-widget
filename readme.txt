@@ -3,7 +3,7 @@ Contributors: ronalfy
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9187843
 Tags: ajax, widget, random, widgets
 Requires at least: 2.8.5
-Tested up to: 2.8.5
+Tested up to: 2.9.2
 Stable tag: trunk
 
 Allows the display of random posts, but allows the admin to determine how often the random posts are refreshed.
