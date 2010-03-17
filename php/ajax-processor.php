@@ -1,24 +1,9 @@
 <?php 
+header ('HTTP/1.1 200 OK');
 header('Content-Type: text/html; charset=UTF-8');
 define('DOING_AJAX', true);
-define('WP_INSTALLING', true);
-$root = dirname(dirname(dirname(dirname(dirname(__FILE__)))));
-if (file_exists($root.'/wp-load.php')) {
-		// WP 2.6
-		require_once($root.'/wp-load.php');
-} else {
-		// Before 2.6
-		require_once($root.'/wp-config.php');
-}
-$plugin = 'static-random-posts/static-random-posts.php';
-// Validate plugin filename
-if ( !validate_file($plugin) && '.php' == substr($plugin, -4) && file_exists(WP_PLUGIN_DIR . '/' . $plugin)) {
-	include_once(WP_PLUGIN_DIR . '/' . $plugin);
-}
-unset($plugin);
 
 $staticrandomposts = new static_random_posts();
-
 if (isset($_POST['number'])) {
 	$number = intval($_POST['number']);
 	$action = addslashes(preg_replace("/[^a-z0-9]/i", '', strip_tags($_POST['action'])));
