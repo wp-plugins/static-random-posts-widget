@@ -36,7 +36,7 @@ function initialize_links() {
 		s.type = "POST";
 		s.data = $j.extend(s.data, {action: url.action, number: url.number, name: url.name, _ajax_nonce: url._wpnonce});
 		s.global = false;
-		s.url = staticrandomposts.SRP_PluginURL + "/php/ajax-processor.php";
+		s.url = staticrandomposts.SRP_SiteUrl + "/?SRP=ajax-processor";
 		s.timeout = 30000;
 		s.success = function(r) {
 			obj.hide();
