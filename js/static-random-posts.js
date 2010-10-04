@@ -30,19 +30,18 @@ function initialize_links() {
 		var obj = $j(this);
 		obj.html(staticrandomposts.SRP_Loading);
 		var s = {};
-		s.element = obj.attr("class");
 		s.response = 'ajax-response';
 		var url = wpAjax.unserialize(obj.attr('href'));
 		s.type = "POST";
 		s.data = $j.extend(s.data, {action: url.action, number: url.number, name: url.name, _ajax_nonce: url._wpnonce});
 		s.global = false;
-		s.url = staticrandomposts.SRP_SiteUrl + "/?SRP=ajax-processor";
+		s.url = staticrandomposts.SRP_AjaxUrl;
 		s.timeout = 30000;
 		s.success = function(r) {
 			obj.hide();
 			obj.html(staticrandomposts.SRP_Refresh);
 			//Parse the XML response
-			var res = wpAjax.parseAjaxResponse(r, s.response,obj.attr("class"));
+			var res = wpAjax.parseAjaxResponse(r, s.response);
 			$j.each( res.responses, function() {
 				if (this.what == "posts") {
 					var data = this.data;

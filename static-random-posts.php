@@ -19,10 +19,6 @@ if (!class_exists('static_random_posts')) {
 			*/
 			function static_random_posts(){
 				$this->adminOptions = $this->get_admin_options();
-				if ( !defined('WP_CONTENT_URL') )
-					define( 'WP_CONTENT_URL', get_option('siteurl') . '/wp-content');
-				if ( !defined('WP_CONTENT_DIR'))
-					define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
 				
 				//Initialization stuff
 				add_action('init', array(&$this, 'init'));
@@ -31,20 +27,56 @@ if (!class_exists('static_random_posts')) {
 				add_action('admin_menu', array(&$this,'add_admin_pages'));
 				//JavaScript
 				add_action('wp_print_scripts', array(&$this,'add_post_scripts'),1000);
-				
+				//Ajax
+				add_action('wp_ajax_refreshstatic', array(&$this, 'ajax_refresh_static_posts'));
 				//Widget stuff
 				$widget_ops = array('description' => __('Shows Static Random Posts.', $this->localizationName) );
 				//Create widget
 				$this->WP_Widget('staticrandomposts', __('Static Random Posts', $this->localizationName), $widget_ops);
 			}
 			
-		
+			//Build new posts and send back via Ajax
+			function ajax_refresh_static_posts() {
+				if (isset($_POST['number']) && current_user_can('administrator')) {
+					$number = intval($_POST['number']);
+					$action = addslashes(preg_replace("/[^a-z0-9]/i", '', strip_tags($_POST['action'])));
+					$name = addslashes(preg_replace("/[^_a-z0-9]/i", '', strip_tags($_POST['name'])));
+					
+					check_ajax_referer('refreshstaticposts');
+					
+					//Get the widgets
+					$settings = get_option($name);
+					$widget = $settings[$number];
+					
+					//Get the new post IDs
+					$widget = $this->build_posts(intval($widget['postlimit']),$widget);
+					$post_ids = $widget['posts'];
+					
+					//Save the settings
+					$settings[$number] = $widget;
+					update_option($name, $settings);
+					
+					//Let's clean up the cache
+					//Update WP Super Cache if available
+					if(function_exists("wp_cache_clean_cache")) {
+						@wp_cache_clean_cache('wp-cache-');
+					}
+					//Build and send the response
+					$response = new WP_Ajax_Response();
+					$response->add( array(
+									'what' => 'posts',
+									'id' => $number,
+									'data' => $this->print_posts($post_ids, false)));
+					$response->send();
+				}
+				exit;			
+			} //end ajax_refresh_static_posts
 			
 			/* init - Run upon WordPress initialization */
 			function init() {
 				//* Begin Localization Code */
 				$static_random_posts_locale = get_locale();
-				$static_random_posts_mofile = WP_CONTENT_DIR . "/plugins/static-random-posts/languages/" . $this->localizationName . "-". $static_random_posts_locale.".mo";
+				$static_random_posts_mofile = WP_PLUGIN_DIR . "/static-random-posts/languages/" . $this->localizationName . "-". $static_random_posts_locale.".mo";
 				load_textdomain($this->localizationName, $static_random_posts_mofile);
 			//* End Localization Code */
 			}//end function init
@@ -65,8 +97,8 @@ if (!class_exists('static_random_posts')) {
 					echo "<ul class='static-random-posts' id='static-random-posts-$this->number'>";
 					$this->print_posts($post_ids);
 					echo "</ul>";
-					if (current_user_can('edit_users')) {
-						$refresh_url = clean_url( wp_nonce_url(get_bloginfo('url') . "/?SRP=ajax-processor&action=refreshstatic&number=$this->number&name=$this->option_name", "refreshstatic_$this->number"));
+					if (current_user_can('administrator')) {
+						$refresh_url = esc_url( wp_nonce_url(admin_url("admin-ajax.php?action=refreshstatic&number=$this->number&name=$this->option_name"), "refreshstaticposts"));
 						echo "<br /><a href='$refresh_url' class='static-refresh'>" . __("Refresh...",$this->localizationName) . "</a>";
 					}
 				}
@@ -79,7 +111,7 @@ if (!class_exists('static_random_posts')) {
 				$posts = get_posts("include=$post_ids");
 				$posts_string = '';
 				foreach ($posts as $post) {
-					$posts_string .= "<li><a href='" . get_permalink($post->ID) . "' title='". $post_title ."'>" . htmlspecialchars(stripslashes(strip_tags($post->post_title))) ."</a></li>\n";
+					$posts_string .= "<li><a href='" . get_permalink($post->ID) . "' title='". esc_attr($post->post_title) ."'>" . esc_html($post->post_title) ."</a></li>\n";
 				}
 				if ($echo) {
 					echo $posts_string;
@@ -151,11 +183,11 @@ if (!class_exists('static_random_posts')) {
 				$title = esc_attr($instance['title']);
 				?>
 			<p>
-				<label for="<?php echo $this->get_field_id('title'); ?>"><?php _e("Title", $this->localizationName); ?><input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" />
+				<label for="<?php echo esc_attr($this->get_field_id('title')); ?>"><?php _e("Title", $this->localizationName); ?><input class="widefat" id="<?php echo esc_attr($this->get_field_id('title')); ?>" name="<?php echo esc_attr($this->get_field_name('title')); ?>" type="text" value="<?php echo $title; ?>" />
 				</label>
 			</p>
 			<p>
-				<label for="<?php echo $this->get_field_id('postlimit'); ?>"><?php _e("Number of Posts to Show", $this->localizationName); ?><input class="widefat" id="<?php echo $this->get_field_id('postlimit'); ?>" name="<?php echo $this->get_field_name('postlimit'); ?>" type="text" value="<?php echo $postlimit; ?>" />
+				<label for="<?php echo esc_attr($this->get_field_id('postlimit')); ?>"><?php _e("Number of Posts to Show", $this->localizationName); ?><input class="widefat" id="<?php echo esc_attr($this->get_field_id('postlimit')); ?>" name="<?php echo esc_attr($this->get_field_name('postlimit')); ?>" type="text" value="<?php echo esc_attr($postlimit); ?>" />
 				</label>
 			</p>
 			<p><?php _e("Please visit",$this->localizationName)?> <a href="options-general.php?page=static-random-posts.php"><?php _e("Static Random Posts",$this->localizationName)?></a> <?php _e("to adjust the global settings",$this->localizationName)?>.</p>
@@ -194,7 +226,7 @@ if (!class_exists('static_random_posts')) {
 					update_option($this->adminOptionsName, $this->adminOptions);
 				}
 			}
-						//Add scripts to the front-end of the blog
+			//Add scripts to the front-end of the blog
 			function add_post_scripts() {
 				if (is_active_widget(true, $this->id, $this->id_base) == false) { return; }
 				wp_enqueue_script("wp-ajax-response");
@@ -206,29 +238,11 @@ if (!class_exists('static_random_posts')) {
 				return array(
 					'SRP_Loading' => __('Loading...', $this->localizationName),
 					'SRP_Refresh' => __('Refresh...', $this->localizationName),
-					'SRP_SiteUrl' =>  get_bloginfo('url')
+					'SRP_AjaxUrl' =>  admin_url('admin-ajax.php')
 				);
 			} //end get_js_vars
 			/*END UTILITY FUNCTIONS*/
     }//End class
 }
-function SRP_load_page() {
-	$pagepath = WP_PLUGIN_DIR . '/static-random-posts/php/';
-	switch(get_query_var('SRP')) {
-		case 'ajax-processor':
-			include($pagepath . 'ajax-processor.php');
-			exit;
-		default:
-			break;
-	}
-} //end function load_page
-function SRP_query_trigger($queries) {
-	array_push($queries, 'SRP');
-	return $queries;
-}//end function query_trigger
-add_action('template_redirect', 'SRP_load_page');
-add_filter('query_vars', 'SRP_query_trigger');
 add_action('widgets_init', create_function('', 'return register_widget("static_random_posts");') );
-
-
 ?>
