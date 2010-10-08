@@ -37,14 +37,13 @@ if (!class_exists('static_random_posts')) {
 			
 			//Build new posts and send back via Ajax
 			function ajax_refresh_static_posts() {
+				check_ajax_referer('refreshstaticposts');
 				if (isset($_POST['number']) && current_user_can('administrator')) {
 					$number = intval($_POST['number']);
 					$action = addslashes(preg_replace("/[^a-z0-9]/i", '', strip_tags($_POST['action'])));
 					$name = addslashes(preg_replace("/[^_a-z0-9]/i", '', strip_tags($_POST['name'])));
 					
-					check_ajax_referer('refreshstaticposts');
-					
-					//Get the widgets
+					//Get the SRP widgets
 					$settings = get_option($name);
 					$widget = $settings[$number];
 					
@@ -64,9 +63,9 @@ if (!class_exists('static_random_posts')) {
 					//Build and send the response
 					$response = new WP_Ajax_Response();
 					$response->add( array(
-									'what' => 'posts',
-									'id' => $number,
-									'data' => $this->print_posts($post_ids, false)));
+						'what' => 'posts',
+						'id' => $number,
+						'data' => $this->print_posts($post_ids, false)));
 					$response->send();
 				}
 				exit;			
@@ -94,7 +93,7 @@ if (!class_exists('static_random_posts')) {
 				//Get posts
 				$post_ids = $this->get_posts($instance);
 				if (!empty($post_ids)) {
-					echo "<ul class='static-random-posts' id='static-random-posts-$this->number'>";
+					echo "<ul class='static-random-posts' id='static-random-posts-{$this->number}'>";
 					$this->print_posts($post_ids);
 					echo "</ul>";
 					if (current_user_can('administrator')) {
@@ -157,8 +156,8 @@ if (!class_exists('static_random_posts')) {
 				
 				$posts = get_posts("cat=$cats&showposts=$limit&orderby=rand"); //get posts by random
 				$post_ids = array();
-				for ($i=0; $i<$limit; $i++) {
-					$post_ids[$i] = $posts[$i]->ID;
+				foreach ($posts as $post) {
+					array_push($post_ids, $post->ID);
 				}
 				$post_ids = implode(',', $post_ids);
 				$instance['posts'] = $post_ids;
@@ -183,7 +182,7 @@ if (!class_exists('static_random_posts')) {
 				$title = esc_attr($instance['title']);
 				?>
 			<p>
-				<label for="<?php echo esc_attr($this->get_field_id('title')); ?>"><?php _e("Title", $this->localizationName); ?><input class="widefat" id="<?php echo esc_attr($this->get_field_id('title')); ?>" name="<?php echo esc_attr($this->get_field_name('title')); ?>" type="text" value="<?php echo $title; ?>" />
+				<label for="<?php echo esc_attr($this->get_field_id('title')); ?>"><?php _e("Title", $this->localizationName); ?><input class="widefat" id="<?php echo esc_attr($this->get_field_id('title')); ?>" name="<?php echo esc_attr($this->get_field_name('title')); ?>" type="text" value="<?php echo esc_attr($title); ?>" />
 				</label>
 			</p>
 			<p>
@@ -195,7 +194,7 @@ if (!class_exists('static_random_posts')) {
 			}//End function form
 						/*BEGIN UTILITY FUNCTIONS - Grouped by function and not by name */
 			function add_admin_pages(){
-					add_options_page('Static Random Posts', 'Static Random Posts', 9, basename(__FILE__), array(&$this, 'print_admin_page'));
+				add_options_page('Static Random Posts', 'Static Random Posts', 9, basename(__FILE__), array(&$this, 'print_admin_page'));
 			}
 			//Provides the interface for the admin pages
 			function print_admin_page() {
@@ -210,10 +209,11 @@ if (!class_exists('static_random_posts')) {
 					);
 					$options = get_option($this->adminOptionsName);
 					if (!empty($options)) {
-						foreach ($options as $key => $option)
-									if (array_key_exists($key, $adminOptions)) {
-										$adminOptions[$key] = $option;
-									}
+						foreach ($options as $key => $option) {
+							if (array_key_exists($key, $adminOptions)) {
+								$adminOptions[$key] = $option;
+							}
+						}
 					}
 					$this->adminOptions = $adminOptions;
 					$this->save_admin_options();								
@@ -228,16 +228,18 @@ if (!class_exists('static_random_posts')) {
 			}
 			//Add scripts to the front-end of the blog
 			function add_post_scripts() {
-				if (is_active_widget(true, $this->id, $this->id_base) == false) { return; }
+				//Only load the widget if the widget is showing
+				if ( !is_active_widget(true, $this->id, $this->id_base) || is_admin() ) { return; }
+				//queue the scripts
 				wp_enqueue_script("wp-ajax-response");
 				wp_enqueue_script('static_random_posts_script', plugins_url('static-random-posts') . '/js/static-random-posts.js', array("jquery", "wp-ajax-response") , 1.0);
 				wp_localize_script( 'static_random_posts_script', 'staticrandomposts', $this->get_js_vars());
 			}
-			//Echoes out various JavaScript vars needed for the scripts
+			//Returns various JavaScript vars needed for the scripts
 			function get_js_vars() {
 				return array(
-					'SRP_Loading' => __('Loading...', $this->localizationName),
-					'SRP_Refresh' => __('Refresh...', $this->localizationName),
+					'SRP_Loading' => esc_js(__('Loading...', $this->localizationName)),
+					'SRP_Refresh' => esc_js(__('Refresh...', $this->localizationName)),
 					'SRP_AjaxUrl' =>  admin_url('admin-ajax.php')
 				);
 			} //end get_js_vars

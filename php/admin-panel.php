@@ -7,8 +7,8 @@ if (empty($this->adminOptionsName)) { die(''); }
 $options = $this->adminOptions; //global settings
 
 //Check to see if a user can access the panel
-if ( function_exists('current_user_can') && !current_user_can('manage_options') )
-			die("nope");
+if (!current_user_can('manage_options') )
+	die("nope");
 
 //Update settings
 if (isset($_POST['update'])) { 
@@ -62,38 +62,38 @@ if (isset($_POST['update'])) {
   <tbody>
     <tr valign="top">
       <th scope="row"><?php _e('Set refresh time (minutes):', $this->localizationName) ?></th>
-      <td><input type="text" name="time" value="<?php echo $options['minutes'] ?>" id="comment_time"/><p><?php _e('Your random posts will be refreshed every', $this->localizationName); echo " " . $options['minutes'] . " ";_e('minutes.', $this->localizationName);?></p></td>
+      <td><input type="text" name="time" value="<?php echo esc_attr($options['minutes']); ?>" id="comment_time"/><p><?php _e('Your random posts will be refreshed every', $this->localizationName); echo " " . $options['minutes'] . " ";_e('minutes.', $this->localizationName);?></p></td>
     </tr>
     <tr valign="top">
         <th scope="row"><?php _e('Exclude Categories:', $this->localizationName) ?></th>
       <td>
         <?php
         $args = array(
-                        'type'                     => 'post',
-                        'child_of'                 => 0,
-                        'orderby'                  => 'name',
-                        'order'                    => 'ASC',
-                        'hide_empty'               => false,
-                        'include_last_update_time' => false,
-                        'hierarchical'             => 1);
-                        $categories = get_categories( $args ); 
-                        foreach ($categories as $cat) {
-                            $checked = '';
-                            if (is_array($options['categories'])) {
-                                if (in_array("-" . $cat->term_id, $options['categories'], false)) {
-                                    $checked = "checked='checked'";
-                                }
-                            }
-                            echo "<input type='checkbox' id='$cat->term_id' value='$cat->term_id' name='categories[]' $checked /> ";
-                            echo "<label for='$cat->term_id'>$cat->name</label><br />";
-                        }
-                    ?>
+			'type'                     => 'post',
+			'child_of'                 => 0,
+			'orderby'                  => 'name',
+			'order'                    => 'ASC',
+			'hide_empty'               => false,
+			'include_last_update_time' => false,
+			'hierarchical'             => 1);
+		$categories = get_categories( $args ); 
+		foreach ($categories as $cat) {
+			$checked = '';
+			if (is_array($options['categories'])) {
+				if (in_array("-" . $cat->term_id, $options['categories'], false)) {
+					$checked = "checked='checked'";
+				}
+			}
+			echo "<input type='checkbox' id='$cat->term_id' value='$cat->term_id' name='categories[]' $checked /> ";
+			echo "<label for='$cat->term_id'>$cat->name</label><br />";
+		}
+		?>
       </td>
     </tr>
  </tbody>
 </table>
     <div class="submit">
-      <input type="submit" name="update" value="<?php _e('Update Settings', $this->localizationName) ?>" />
+      <input type="submit" name="update" value="<?php esc_attr_e('Update Settings', $this->localizationName) ?>" />
     </div>
   </form>
 </div>
