@@ -32,28 +32,21 @@ function initialize_links() {
 		var s = {};
 		s.response = 'ajax-response';
 		var url = wpAjax.unserialize(obj.attr('href'));
-		s.type = "POST";
-		s.data = $j.extend(s.data, {action: url.action, number: url.number, name: url.name, _ajax_nonce: url._wpnonce});
-		s.global = false;
-		s.url = staticrandomposts.SRP_AjaxUrl;
-		s.timeout = 30000;
-		s.success = function(r) {
+		$j.post( staticrandomposts.SRP_AjaxUrl, {
+			action: url.action,
+			number: url.number,
+			name: url.name,
+			_ajax_nonce: url._wpnonce
+		}, function( response ) {
 			obj.hide();
 			obj.html(staticrandomposts.SRP_Refresh);
-			//Parse the XML response
-			var res = wpAjax.parseAjaxResponse(r, s.response);
-			$j.each( res.responses, function() {
-				if (this.what == "posts") {
-					var data = this.data;
-					$j("#static-random-posts-" + url.number).hide("slow", function() { 
-						$j("#static-random-posts-" + url.number).html(data);
-						$j("#static-random-posts-" + url.number).show("slow", function() { obj.show(); });
-						return;
-					});
-				}
+			
+			$j("#static-random-posts-" + url.number).hide("slow", function() { 
+				$j("#static-random-posts-" + url.number).html( response );
+				$j("#static-random-posts-" + url.number).show("slow", function() { obj.show(); });
+				return;
 			});
-		}
-		$j.ajax(s);
+		} );		
 		return false; 
 	});
 }

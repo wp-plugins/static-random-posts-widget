@@ -1,9 +1,8 @@
 === Static Random Posts Widget ===
 Contributors: ronalfy
-Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9187843
 Tags: ajax, widget, random, widgets
 Requires at least: 2.8.5
-Tested up to: 2.9.2
+Tested up to: 3.4
 Stable tag: trunk
 
 Allows the display of random posts, but allows the admin to determine how often the random posts are refreshed.
@@ -34,6 +33,9 @@ The "Refresh" feature is useful for those who have long refresh times, but want 
 
 
 == Changelog ==
+= 1.2 = 
+* Released 06 June 2012 by Ronalfy
+* Added user refresh on a per-widget basis
 = 1.0 = 
 * Released 25 October 2009 by Ronalfy
 * First release.  Yay!
@@ -74,9 +76,3 @@ Say, for example, you have the refresh rate set for sixty minutes.  You look at 
 = Can I provide a translation? =
 
 Sure.  Please <a href="http://www.ronalfy.com/contact">contact me</a> to submit your translation.  If you need assistance on how to work with <strong>po</strong> files, please read my article on <a href="http://weblogtoolscollection.com/archives/2007/08/27/localizing-a-wordpress-plugin-using-poedit/">localizing a WordPress plugin</a>. 
-
-= Is support free? =
-
-If you're having issues, please use my <a href="http://www.ronalfy.com/contact">contact form</a>.  
-
-If you have special needs, I will let you know if hourly support is necessary.
